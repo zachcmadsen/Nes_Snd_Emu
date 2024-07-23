@@ -5,6 +5,7 @@
 #define NES_APU_H
 
 #include <climits>
+#include <cstddef>
 
 #include "Nes_Oscs.h"
 
