@@ -32,7 +32,7 @@ static void emulate_frame()
 	apu.end_frame();
 }
 
-static int read_dmc( void*, cpu_addr_t addr )
+static int read_dmc( void*, int addr )
 {
 	// call your memory read function here
 	//return read_memory( addr );

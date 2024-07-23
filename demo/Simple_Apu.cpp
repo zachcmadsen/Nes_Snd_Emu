@@ -14,7 +14,7 @@ more details. You should have received a copy of the GNU Lesser General
 Public License along with this module; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
-static int null_dmc_reader( void*, cpu_addr_t )
+static int null_dmc_reader( void*, int )
 {
 	return 0x55; // causes dmc sample to be flat
 }
@@ -30,20 +30,20 @@ Simple_Apu::~Simple_Apu()
 {
 }
 
-void Simple_Apu::dmc_reader( int (*f)( void* user_data, cpu_addr_t ), void* p )
+void Simple_Apu::dmc_reader( int (*f)( void* user_data, int ), void* p )
 {
 	assert( f );
 	apu.dmc_reader( f, p );
 }
 
-blargg_err_t Simple_Apu::sample_rate( long rate )
+const char* Simple_Apu::sample_rate( long rate )
 {
-	apu.output( &buf );
+	apu.set_output( &buf );
 	buf.clock_rate( 1789773 );
-	return buf.sample_rate( rate );
+	return buf.set_sample_rate( rate );
 }
 
-void Simple_Apu::write_register( cpu_addr_t addr, int data )
+void Simple_Apu::write_register( int addr, int data )
 {
 	apu.write_register( clock(), addr, data );
 }
@@ -70,14 +70,3 @@ long Simple_Apu::read_samples( sample_t* p, long s )
 {
 	return buf.read_samples( p, s );
 }
-
-void Simple_Apu::save_snapshot( apu_snapshot_t* out ) const
-{
-	apu.save_snapshot( out );
-}
-
-void Simple_Apu::load_snapshot( apu_snapshot_t const& in )
-{
-	apu.load_snapshot( in );
-}
-
