@@ -13,8 +13,6 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
-#include "blargg_source.h"
-
 int const amp_range = 15;
 
 Nes_Apu::Nes_Apu() :
@@ -138,7 +136,7 @@ void Nes_Apu::irq_changed()
 
 void Nes_Apu::run_until( blip_time_t end_time )
 {
-	require( end_time >= last_dmc_time );
+	assert( end_time >= last_dmc_time );
 	if ( end_time > next_dmc_read_time() )
 	{
 		blip_time_t start = last_dmc_time;
@@ -149,7 +147,7 @@ void Nes_Apu::run_until( blip_time_t end_time )
 
 void Nes_Apu::run_until_( blip_time_t end_time )
 {
-	require( end_time >= last_time );
+	assert( end_time >= last_time );
 	
 	if ( end_time == last_time )
 		return;
@@ -253,18 +251,16 @@ void Nes_Apu::end_frame( blip_time_t end_time )
 	
 	// make times relative to new frame
 	last_time -= end_time;
-	require( last_time >= 0 );
+	assert( last_time >= 0 );
 	
 	last_dmc_time -= end_time;
-	require( last_dmc_time >= 0 );
+	assert( last_dmc_time >= 0 );
 	
 	if ( next_irq != no_irq ) {
 		next_irq -= end_time;
-		check( next_irq >= 0 );
 	}
 	if ( dmc.next_irq != no_irq ) {
 		dmc.next_irq -= end_time;
-		check( dmc.next_irq >= 0 );
 	}
 	if ( earliest_irq_ != no_irq ) {
 		earliest_irq_ -= end_time;
@@ -284,8 +280,8 @@ static const unsigned char length_table [0x20] = {
 
 void Nes_Apu::write_register( blip_time_t time, int addr, int data )
 {
-	require( addr > 0x20 ); // addr must be actual address (i.e. 0x40xx)
-	require( (unsigned) data <= 0xFF );
+	assert( addr > 0x20 ); // addr must be actual address (i.e. 0x40xx)
+	assert( (unsigned) data <= 0xFF );
 	
 	// Ignore addresses outside range
 	if ( unsigned (addr - io_addr) >= io_size )

@@ -4,6 +4,8 @@
 #ifndef BLIP_BUFFER_IMPL_H
 #define BLIP_BUFFER_IMPL_H
 
+#include <cassert>
+
 typedef unsigned blip_resampled_time_t;
 
 #ifndef BLIP_MAX_QUALITY

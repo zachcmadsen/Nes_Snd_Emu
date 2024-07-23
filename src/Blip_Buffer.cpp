@@ -2,7 +2,10 @@
 
 #include "Blip_Buffer.h"
 
-#include <math.h>
+#include <climits>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 /* Copyright (C) 2003-2008 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -14,8 +17,6 @@ FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
-
-#include "blargg_source.h"
 
 //// Blip_Buffer
 
@@ -39,7 +40,7 @@ Blip_Buffer::Blip_Buffer()
 		
 		// casting truncates and sign-extends
 		i = 0x18000;
-		assert( (BOOST::int16_t) i == -0x8000 );
+		assert( (std::int16_t) i == -0x8000 );
 	#endif
 	
 	clear();
@@ -47,7 +48,7 @@ Blip_Buffer::Blip_Buffer()
 
 Blip_Buffer::~Blip_Buffer()
 {
-	free( buffer_ );
+	std::free( buffer_ );
 }
 
 void Blip_Buffer::clear()
@@ -61,11 +62,11 @@ void Blip_Buffer::clear()
 	if ( buffer_ )
 	{
 		int count = (entire_buffer ? buffer_size_ : samples_avail());
-		memset( buffer_, 0, (count + blip_buffer_extra_) * sizeof (delta_t) );
+		std::memset( buffer_, 0, (count + blip_buffer_extra_) * sizeof (delta_t) );
 	}
 }
 
-blargg_err_t Blip_Buffer::set_sample_rate( int new_rate, int msec )
+const char* Blip_Buffer::set_sample_rate( int new_rate, int msec )
 {
 	// Limit to maximum size that resampled time can represent
 	int max_size = (((blip_resampled_time_t) -1) >> BLIP_BUFFER_ACCURACY) -
@@ -78,8 +79,10 @@ blargg_err_t Blip_Buffer::set_sample_rate( int new_rate, int msec )
 	if ( buffer_size_ != new_size )
 	{
 		//dprintf( "%d \n", (new_size + blip_buffer_extra_) * sizeof *buffer_  );
-		void* p = realloc( buffer_, (new_size + blip_buffer_extra_) * sizeof *buffer_ );
-		CHECK_ALLOC( p );
+		void* p = std::realloc( buffer_, (new_size + blip_buffer_extra_) * sizeof *buffer_ );
+		if (!p) {
+			return "out of memory";
+		}
 		buffer_      = (delta_t*) p;
 		buffer_center_ = buffer_ + BLIP_MAX_QUALITY/2;
 		buffer_size_ = new_size;
@@ -94,13 +97,13 @@ blargg_err_t Blip_Buffer::set_sample_rate( int new_rate, int msec )
 	
 	clear();
 	
-	return blargg_ok;
+	return nullptr;
 }
 
 blip_resampled_time_t Blip_Buffer::clock_rate_factor( int rate ) const
 {
 	double ratio = (double) sample_rate_ / rate;
-	int factor = (int) floor( ratio * (1 << BLIP_BUFFER_ACCURACY) + 0.5 );
+	int factor = (int) std::floor( ratio * (1 << BLIP_BUFFER_ACCURACY) + 0.5 );
 	assert( factor > 0 || !sample_rate_ ); // fails if clock/output ratio is too large
 	return (blip_resampled_time_t) factor;
 }
@@ -164,7 +167,7 @@ int Blip_Buffer::read_samples( blip_sample_t out_ [], int max_samples, bool ster
 		delta_t const* reader = read_pos() + count;
 		int reader_sum = integrator();
 		
-		blip_sample_t* BLARGG_RESTRICT out = out_ + count;
+		blip_sample_t* out = out_ + count;
 		if ( stereo )
 			out += count;
 		int offset = -count;
@@ -285,17 +288,17 @@ static void gen_sinc( float out [], int out_size, double oversample,
 	if ( treble >    5.0 ) treble =    5.0;
 	
 	double const maxh = 4096.0;
-	double rolloff = pow( 10.0, 1.0 / (maxh * 20.0) * treble / (1.0 - mid) );
-	double const pow_a_n = pow( rolloff, maxh - maxh * mid );
+	double rolloff = std::pow( 10.0, 1.0 / (maxh * 20.0) * treble / (1.0 - mid) );
+	double const pow_a_n = std::pow( rolloff, maxh - maxh * mid );
 	double const to_angle = PI / maxh / oversample;
 	for ( int i = 1; i < out_size; i++ )
 	{
 		double angle = i * to_angle;
-		double c = rolloff *   cos( angle * maxh       - angle ) -
-		                       cos( angle * maxh               );
-		double cos_nc_angle  = cos( angle * maxh * mid         );
-		double cos_nc1_angle = cos( angle * maxh * mid - angle );
-		double cos_angle     = cos( angle                         );
+		double c = rolloff *   std::cos( angle * maxh       - angle ) -
+		                       std::cos( angle * maxh               );
+		double cos_nc_angle  = std::cos( angle * maxh * mid         );
+		double cos_nc1_angle = std::cos( angle * maxh * mid - angle );
+		double cos_angle     = std::cos( angle                         );
 		
 		c = c * pow_a_n - rolloff * cos_nc1_angle + cos_nc_angle;
 		double d = 1.0 + rolloff * (rolloff - cos_angle - cos_angle);
@@ -399,7 +402,7 @@ void Blip_Synth_::treble_eq( blip_eq_t const& eq )
 		
 		// flooring separately virtually eliminates error
 		phases [x] = (short) (int)
-				(floor( sum * rescale + 0.5 ) - floor( next * rescale + 0.5 ));
+				(std::floor( sum * rescale + 0.5 ) - std::floor( next * rescale + 0.5 ));
 		//phases [x] = (short) (int)
 		//      floor( sum * rescale - next * rescale + 0.5 );
 	}
@@ -502,7 +505,7 @@ void Blip_Synth_::volume_unit( double new_unit )
 			}
 		}
 		
-		delta_factor = -(int) floor( factor + 0.5 );
+		delta_factor = -(int) std::floor( factor + 0.5 );
 		//printf( "delta_factor: %d, kernel_unit: %d\n", delta_factor, kernel_unit );
 	}
 }

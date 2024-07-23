@@ -4,11 +4,12 @@
 #ifndef BLIP_BUFFER_H
 #define BLIP_BUFFER_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer_impl.h"
 
+#include <cstdint>
+
 typedef int blip_time_t;                    // Source clocks in current time frame
-typedef BOOST::int16_t blip_sample_t;       // 16-bit signed output sample
+typedef std::int16_t blip_sample_t;       // 16-bit signed output sample
 int const blip_default_length = 1000 / 4;   // Default Blip_Buffer length (1/4 second)
 
 
@@ -18,7 +19,7 @@ class Blip_Buffer : public Blip_Buffer_ {
 public:
 
 	// Sets output sample rate and resizes and clears sample buffer
-	blargg_err_t set_sample_rate( int samples_per_sec, int msec_length = blip_default_length );
+	const char* set_sample_rate( int samples_per_sec, int msec_length = blip_default_length );
 	
 	// Sets number of source time units per second
 	void clock_rate( int clocks_per_sec );
@@ -102,7 +103,6 @@ private:
 
 // Implementation
 public:
-	BLARGG_DISABLE_NOTHROW
 	Blip_Buffer();
 	~Blip_Buffer();
 	void remove_silence( int n );
@@ -154,7 +154,6 @@ public:
 	
 // Implementation
 public:
-	BLARGG_DISABLE_NOTHROW
 
 private:
 #if BLIP_BUFFER_FAST
