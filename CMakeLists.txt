@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(nes-snd-emu)
+project(
+    nes-snd-emu
+    VERSION 0.1.0
+)
 
 add_subdirectory(src)
 
